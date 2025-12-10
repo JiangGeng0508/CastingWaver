@@ -187,7 +187,12 @@ public partial class CastingWaver : Control
         if (_hexLine.Points.Length > 0)
         {
             if(_hexLine.Points.Last() == hexPos) return;
-            if(_hexLine.Points.Length > 1 && _hexLine.Points[^2] == hexPos) return;
+            if(_hexLine.Points.Length > 1 && _hexLine.Points[^2] == hexPos)
+            {
+                _hexLine.RemovePoint(_hexLine.Points.Length - 1);
+                UpdateCursorLine();
+                return;
+            }
             if(!ValidPos(hexPos)) return;
             if (_hexLine.Points.Where((point, i) =>
                     Equals(point, hexPos) && i != 0 && Equals(_hexLine.Points[i - 1], _hexLine.Points.Last())).Any())
