@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3 uid="uid://yspndks28ons"]
+
+[ext_resource type="Texture2D" uid="uid://sx3ran0s3vl7" path="res://icon.svg" id="1_7c1qw"]
+[ext_resource type="PackedScene" uid="uid://pklvjwd8fjkf" path="res://CastingWaver.tscn" id="2_i7llj"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i7llj"]
+size = Vector2(128, 128)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_i7llj"]
+radius = 40.04997
+
+[node name="TestWorld" type="Node2D"]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(561.00006, 630)
+scale = Vector2(11.08, 1)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("RectangleShape2D_i7llj")
+
+[node name="Icon" type="Polygon2D" parent="StaticBody2D"]
+texture = ExtResource("1_7c1qw")
+polygon = PackedVector2Array(59.1, -64, -59, -64, -63.8, -59, -64, 61, -60.3, 64, 59.6, 64, 63.9, 59, 64, -61.1)
+uv = PackedVector2Array(123.1, 0, 5, 0, 0.2, 5, 0, 125, 3.7, 128, 123.6, 128, 127.9, 123, 128, 2.9)
+polygons = [PackedInt32Array(0, 1, 2, 3, 4, 5, 6, 7)]
+
+[node name="CanvasLayer" parent="." instance=ExtResource("2_i7llj")]
+
+[node name="RigidBody2D" type="RigidBody2D" parent="." groups=["Player"]]
+position = Vector2(507, 374)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_i7llj")
+
+[node name="Icon" type="Sprite2D" parent="RigidBody2D"]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_7c1qw")
