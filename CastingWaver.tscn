@@ -25,3 +25,22 @@ position = Vector2(5, 0)
 joint_mode = 2
 begin_cap_mode = 2
 end_cap_mode = 2
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_right = 168.0
+offset_bottom = 46.0
+text = "Clear"
+
+[node name="LineEdit" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 811.0
+offset_top = 8.0
+offset_right = 1140.0
+offset_bottom = 39.0
+placeholder_text = "Pattern"
+alignment = 1
+editable = false
+select_all_on_focus = true
+
+[connection signal="pressed" from="Button" to="." method="ClearHexCanvas"]

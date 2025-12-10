@@ -10,7 +10,7 @@ public partial class CastingWaver : Control
     private Line2D _hexLine;
     private Line2D _cursorLine;
 
-    private static string HexMapping(Vector2I coord) => coord switch
+    private static string RawMapping(Vector2I coord) => coord switch
     {
         (2, -1) => "D",
         (1, -1) => "E",
@@ -129,10 +129,14 @@ public partial class CastingWaver : Control
             var coord1 = _hexCanvas.LocalToMap(pattern[index]);
             var coord2 = _hexCanvas.LocalToMap(pattern[index + 1]);
                         
-            resultRaw += HexMapping(coord2 - coord1);
+            resultRaw += RawMapping(coord2 - coord1);
+            if(RawMapping(coord2 - coord1) == "S") GD.Print(coord2 - coord1);
         }
-        GD.Print($"{resultRaw}-{GetLocalAngle(resultRaw)}");
-        HexPattern.Cast(GetLocalAngle(resultRaw));
+        var result = GetLocalAngle(resultRaw);
+        GD.Print($"{resultRaw}-{result}");
+        HexPattern.Cast(result);
+        foreach (var point in _hexLine.Points) SetCanvas(point);
+        GetNode<LineEdit>("LineEdit").Text = result;
         CreateHexLine();
     }
 
@@ -155,7 +159,7 @@ public partial class CastingWaver : Control
 
     private void ClearHexCanvas()
     {
-        foreach (var node in GetTree().GetNodesInGroup("HexLine"))
+        foreach (var node in GetTree().GetNodesInGroup("HexLines"))
         {
             if (node is not Line2D line) continue;
             foreach (var point in line.Points) SetCanvas(point, false);
@@ -180,19 +184,23 @@ public partial class CastingWaver : Control
     private void TryAddHexNode(Vector2 pos)
     {
         var hexPos = GetHexPosition(pos);
-        if (_hexLine.Points.Length == 0)
+        if (_hexLine.Points.Length > 0)
         {
-            _hexLine.AddPoint(hexPos);
-            UpdateCursorLine();
-            return;
+            if(_hexLine.Points.Last() == hexPos) return;
+            if(_hexLine.Points.Length > 1 && _hexLine.Points[^2] == hexPos) return;
+            if(!ValidPos(hexPos)) return;
+            if (_hexLine.Points.Where((point, i) =>
+                    Equals(point, hexPos) && i != 0 && Equals(_hexLine.Points[i - 1], _hexLine.Points.Last())).Any())
+            {
+                return;
+            }
         }
-        if(_hexLine.Points.Last() == hexPos) return;
-        if(!HasNeighbor(hexPos)) return;
-        if(IsCellOccupied(hexPos)) return;
-        if(_hexLine.Points.Contains(hexPos) && _hexLine.Points[0] != hexPos) return;
         _hexLine.AddPoint(hexPos);
-        SetCanvas(hexPos);
         UpdateCursorLine();
     }
-    private bool HasNeighbor(Vector2 pos) => _hexLine.Points.Any(point => pos.DistanceTo(point) <= 65f);
+    
+    private bool ValidPos(Vector2 pos)
+    {
+        return RawMapping(_hexCanvas.LocalToMap(pos) - _hexCanvas.LocalToMap(_hexLine.Points.Last())) != "S" && !IsCellOccupied(pos);
+    }
 }
