@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Godot;
-using static CastingWaver.SpellStack;
+using static CastingWaver.SpellStackManager;
 
 // ReSharper disable StringLiteralTypo
 
@@ -9,38 +10,84 @@ namespace CastingWaver;
 public partial class HexPattern : Node
 {
     public static bool IsWorld3D = true;
-    public static readonly System.Collections.Generic.Dictionary<string, Spell> Patterns = new()
+    public static readonly Dictionary<string, Spell> Patterns = new()
     {
         //打印字符串
         {"W", new Spell(() => {GD.Print("Short Line");})},
+        //零向量
         {"QQQQQ",new Spell(() =>
         {
             PushStack(() => IsWorld3D ? Vector3.Zero : Vector2.Zero);
         })},
+        //X+
+        {"QQQQQEA",new Spell(() =>
+        {
+            PushStack(() => IsWorld3D ? Vector3.Right : Vector2.Right);
+        })},
+        //X-
+        {"EEEEEQA",new Spell(() =>
+        {
+            PushStack(() => IsWorld3D ? Vector3.Left : Vector2.Left);
+        })},
+        //Y+
+        {"QQQQQE",new Spell(() =>
+        {
+            PushStack(() => IsWorld3D ? Vector3.Up : Vector2.Up);
+        })},
+        //Y-
+        {"EEEEEQ",new Spell(() =>
+        {
+            PushStack(() => IsWorld3D ? Vector3.Down : Vector2.Down);
+        })},
+        //Z+
+        {"QQQQQED",new Spell(() =>
+        {
+            PushStack(() => Vector3.Back);
+        })},
+        //Z-
+        {"EEEEEQD",new Spell(() =>
+        {
+            PushStack(() => Vector3.Forward);
+        })},
+        {"EAWAE",new Spell(() =>
+        {
+            PushStack(() => Mathf.Tau);
+        })},
+        {"QDWDQ",new Spell(() =>
+        {
+            PushStack(() => Mathf.Pi);
+        })},
+        {"AAQ",new Spell(() =>
+        {
+            PushStack(() => Mathf.E);
+        })},
+        //False
         { "DEDQ", new Spell(() => 
         {   
             PushStack(() => false);
         })},
+        //True
         { "AEAQ", new Spell(() => 
         {   
             PushStack(() => true);
         })},
-        //压入一个打印元素到栈顶
+        //入栈一个打印
         {"D",new Spell(() =>
         {
             GD.Print("PushStackHello");
             PushStack(() => { GD.Print("Hello World!"); });
         })},
-        //弹出栈顶的元素
+        //出栈一次
         {"A", new Spell(PopStack)},
-        //打印栈顶的元素
+        //打印栈顶的元素并压回
         {"AQA", new Spell(() =>
         {
             var d = PopStack();
             if (d.VariantType == Variant.Type.String && d.AsString() == "OutOfStack") return;
-            GD.Print(d);
+            GD.Print($"peek:{d}");
             PushStack(() => d);
         })},
+        //构造
         {"EQQQQQ",new Spell(() =>
         {
             var z = PopStack();
@@ -48,6 +95,7 @@ public partial class HexPattern : Node
             var x = PopStack();
             PushStack(() => new Vector3(x.AsSingle(), y.AsSingle(), z.AsSingle()));
         })},
+        //分离
         {"QEEEEE",new Spell(() =>
         {
             var v = PopStack();
@@ -61,7 +109,7 @@ public partial class HexPattern : Node
             PushStack(()=> vector.Y);
             PushStack(()=> vector.Z);
         })},
-        //SUM WAAW
+        //求和
         {"WAAW",new Spell(() =>
         {
             var a =  PopStack();
@@ -85,7 +133,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //Sub WDDW
+        //求差
         {"WDDW",new Spell(() =>
         {
             var a =  PopStack();
@@ -109,7 +157,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //Mul WAQAW
+        //求积
         {"WAQAW",new Spell(()=>{
             var a =  PopStack();
             var b = PopStack();
@@ -132,7 +180,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //Sub SDEDW
+        //求商|叉乘
         {"SDEDW",new Spell(() =>
         {
             var a =  PopStack();
@@ -159,7 +207,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //Abs/Mod WQAQW
+        //求绝对值|模
         {"WQAQW",new Spell(()=>{
             var a =  PopStack();
             switch (a.VariantType)
@@ -175,7 +223,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //EXP WEDEW
+        //求幂
         {"WEDEW",new Spell(() =>
         {
             var a =  PopStack();
@@ -205,7 +253,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //FLOOR EWQ
+        //取底
         {"EWQ",new Spell(()=>{
             var a =  PopStack();
             switch (a.VariantType)
@@ -220,7 +268,7 @@ public partial class HexPattern : Node
                     GD.PrintErr("Invalid type");
                     break;
             }})},
-        //UPER QWE
+        //取顶
         {"QWE",new Spell(()=>{
             var a =  PopStack();
             switch (a.VariantType)
@@ -236,7 +284,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //% ADDWAAD
+        //求余
         {"ADDWAAD",new Spell(() =>
         {
             var a =  PopStack();
@@ -269,7 +317,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //Signal/Axis QQQQQAWW
+        //取符号/最近的轴
         {"QQQQQAWW",new Spell(() =>
         {
             var a =  PopStack();
@@ -291,7 +339,7 @@ public partial class HexPattern : Node
                     break;
             }
         })},
-        //Random EQQQ
+        //随机数
         {"EQQQ",new Spell(() =>
         {
             PushStack(() =>
@@ -299,6 +347,129 @@ public partial class HexPattern : Node
                 GD.Randomize();
                 return GD.Randf();
             });
+        })},
+        //交换 AAWDD
+        {"AAWDD",new Spell(() =>
+        {
+            var a = PopStack();
+            var b = PopStack();
+            PushStack(() => a);
+            PushStack(() => b);
+        })},
+        //提升 AAEAA
+        {"AAEAA",new Spell(() =>
+        {
+            var a = PopStack();
+            var b = PopStack();
+            var c = PopStack();
+            PushStack(() => b);
+            PushStack(() => a);
+            PushStack(() => c);
+        })},
+        //下沉 DDQDD
+        {"DDQDD",new Spell(() =>
+        {
+            var a = PopStack();
+            var b = PopStack();
+            var c = PopStack();
+            PushStack(() => a);
+            PushStack(() => c);
+            PushStack(() => b);
+        })},
+        //复制 AADAA
+        {"AADAA",new Spell(() =>
+        {
+            var a = PopStack();
+            PushStack(() => a);
+            PushStack(() => a);
+        })},
+        //预测 AAEDD
+        {"AAEDD",new Spell(() =>
+        {
+            var a = PopStack();
+            var b = PopStack();
+            PushStack(() => b);
+            PushStack(() => a);
+            PushStack(() => b);
+        })},
+        //回想 DDQAA
+        {"DDQAA",new Spell(() =>
+        {
+            var a = PopStack();
+            var b = PopStack();
+            PushStack(() => a);
+            PushStack(() => b);
+            PushStack(() => a);
+        })},
+        //增殖 AADAADAA
+        {"AADAADAA",new Spell(() =>
+        {
+            var a = PopStack();
+            var b = PopStack();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    for (var i = 0; i < a.AsSingle(); i++) PushStack(() => b);
+                    break;
+                case Variant.Type.Int:
+                    for (var i = 0; i < a.AsInt32(); i++) PushStack(() => b);
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+            PushStack(() => b);
+        })},
+        //双倍复制 AADADAAW
+        {"AADADAAW",new Spell(() =>
+        {
+            var a = PopStack();
+            var b = PopStack();
+            PushStack(() => b);
+            PushStack(() => b);
+            PushStack(() => a);
+            PushStack(() => a);
+        })},
+        //反思 QWAEAWQAEAQA
+        {"QWAEAWQAEAQA",new Spell(() =>
+        {
+            PushStack(() => StackCount());
+        })},
+        //挑拣 DDAD
+        {"DDAD",new Spell(() =>
+        {
+            var a = PopStack();
+            var array = SpellStack.ToArray();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(array[^(int)a.AsSingle()]);
+                    break;
+                case Variant.Type.Int:
+                    PushStack(array[^a.AsInt32()]);
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        })},
+        //挑拣复制 AADA
+        {"AADA",new Spell(() =>
+        {
+            var a = PopStack();
+            var array = SpellStack.ToArray();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(array[^(int)a.AsSingle()]);
+                    break;
+                case Variant.Type.Int:
+                    PushStack(array[^a.AsInt32()]);
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
         })},
     };
     //   {"",new Spell(()=>{})},
@@ -309,7 +480,11 @@ public partial class HexPattern : Node
         Patterns.Add("QAQ", new Spell(() =>
         {
             GD.Print("Push player into stack");
-            if(GetTree().GetNodeCountInGroup("Player") == 0) return;
+            if(GetTree().GetNodeCountInGroup("Player") == 0)
+            {
+                GD.PrintErr("Get player failed");
+                return;
+            }
             PushStack(() => GetTree().GetNodesInGroup("Player")[0].GetPath());
         }));
         Patterns.Add("AWQQQWAQW", new Spell(() =>
@@ -361,6 +536,7 @@ public partial class HexPattern : Node
                 PushStack(Callable.From(() => num));
                 return;
             }
+            //输入立即数的相反数
             if (pattern.StartsWith(NegPrefix))
             {
                 var str = pattern[NegPrefix.Length..];
@@ -370,33 +546,31 @@ public partial class HexPattern : Node
             }
             GD.Print($"Invalid pattern: {pattern}");
         }
-    }
-
-    private static float ParseNum(string str)
-    {
-        var num = 0f;
-        foreach (var t in str)
+        return;
+        
+        static float ParseNum(string str)
         {
-            switch (t)
-            {
-                case 'W':
-                    num += 1;
-                    break;
-                case 'Q':
-                    num += 5;
-                    break;
-                case 'A':
-                    num *= 2;
-                    break;
-                case 'E':
-                    num += 10;
-                    break;
-                case 'D':
-                    num /= 2;
-                    break;
+            var num = 0f;
+            foreach (var t in str)
+                switch (t)
+                 {
+                    case 'W':
+                        num += 1;
+                        break;
+                    case 'Q':
+                        num += 5;
+                        break;
+                    case 'A':
+                        num *= 2;
+                        break;
+                    case 'E':
+                        num += 10;
+                        break;
+                    case 'D':
+                        num /= 2;
+                        break;
+                }
+            return num;
             }
-        }
-
-        return num;
     }
 }

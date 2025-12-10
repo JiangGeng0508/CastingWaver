@@ -6,8 +6,8 @@ namespace CastingWaver;
 public class Spell
 {
     private readonly Callable _defaultCall;
-    protected static void PushStack(Callable spell) => SpellStack.PushStack(spell);
-    protected static Variant? PopStack() => SpellStack.PopStack();
+    protected static void PushStack(Callable spell) => SpellStackManager.PushStack(spell);
+    protected static Variant? PopStack() => SpellStackManager.PopStack();
 
     public virtual void Execute()
     {
