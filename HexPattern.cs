@@ -1,48 +1,90 @@
-using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Godot;
+using Godot.Collections;
+// ReSharper disable StringLiteralTypo
 
 namespace CastingWaver;
 
 public partial class HexPattern : Node
 {
-    public static readonly Dictionary<string, Spell> Patterns = new()
+    public static bool IsWorld3D = true;
+    public static readonly System.Collections.Generic.Dictionary<string, Spell> Patterns = new()
     {
         //打印字符串
         {"W", new Spell(() => {GD.Print("Short Line");})},
-        {"QAQ", new Spell(() => {GD.Print("Diamond");})},
+        {"QQQQQ",new Spell(() =>
+        {
+            SpellStack.PushStack(() => IsWorld3D ? Vector3.Zero : Vector2.Zero);
+        })},
+        { "DEDQ", new Spell(() => 
+        {   
+            SpellStack.PushStack(() => false);
+        })},
+        { "AEAQ", new Spell(() => 
+        {   
+            SpellStack.PushStack(() => false);
+        })},
         //压入一个打印元素到栈顶
-        {"EA",new Spell(() =>
+        {"D",new Spell(() =>
         {
             GD.Print("PushStack");
-            SpellStack.PushStack(Callable.From(() => { GD.Print("PopFromStack"); }));
+            SpellStack.PushStack(() => { GD.Print("PopFromStack"); });
         })},
         //弹出栈顶的元素
         {"A", new Spell(SpellStack.PopStack)},
-        //弹出栈顶的元素并打印
-        {"ADA", new Spell(() => {GD.Print(SpellStack.PopStack());})}
+        //打印栈顶的元素
+        {"AQA", new Spell(() =>
+        {
+            var d = SpellStack.PopStack();
+            if (d.VariantType == Variant.Type.String && d.AsString() == "OutOfStack") return;
+            GD.Print(d);
+            SpellStack.PushStack(() => d);
+        })},
+        {"EQQQQQ",new Spell(() =>
+        {
+            var z = SpellStack.PopStack();
+            var y = SpellStack.PopStack();
+            var x = SpellStack.PopStack();
+            SpellStack.PushStack(() => new Vector3(x.AsSingle(), y.AsSingle(), z.AsSingle()));
+        })}
     };
 
     public override void _Ready()
     {
-        Patterns.Add("AA", new Spell(() =>
+        Patterns.Add("QAQ", new Spell(() =>
         {
+            GD.Print("Push player into stack");
             if(GetTree().GetNodeCountInGroup("Player") == 0) return;
             SpellStack.PushStack(() => GetTree().GetNodesInGroup("Player")[0].GetPath());
         }));
-        Patterns.Add("WA", new Spell(() =>
+        Patterns.Add("AWQQQWAQW", new Spell(() =>
         {
-            var d = SpellStack.PopStack();
-            if (GetNode(d.AsNodePath()) is RigidBody2D body)
+            GD.Print("Gave player an impulse");
+            var d2 = SpellStack.PopStack();
+            var d1 = SpellStack.PopStack();
+            if(IsWorld3D)
             {
-                body.ApplyCentralImpulse(Vector2.Right * 200f);
+                if (d2.VariantType != Variant.Type.Vector3 || d1.VariantType != Variant.Type.NodePath)
+                {
+                    GD.PrintErr("Invalid stack");
+                    return;
+                }
+                if (GetNode(d1.AsNodePath()) is RigidBody3D body)
+                {
+                    body.ApplyCentralImpulse(d2.AsVector3() * 20f);
+                }
             }
-        }));
-        Patterns.Add("WD", new Spell(() =>
-        {
-            var d = SpellStack.PopStack();
-            if (GetNode(d.AsNodePath()) is RigidBody2D body)
+            else
             {
-                body.ApplyCentralImpulse(Vector2.Left * 200f);
+                if (d2.VariantType != Variant.Type.Vector2 || d1.VariantType != Variant.Type.NodePath)
+                {
+                    GD.PrintErr("Invalid stack");
+                    return;
+                }
+                if (GetNode(d1.AsNodePath()) is RigidBody2D body)
+                {
+                    body.ApplyCentralImpulse(d2.AsVector2() * 40f);
+                }
             }
         }));
     }
@@ -55,6 +97,7 @@ public partial class HexPattern : Node
             spell.Execute();
         else
         {
+            //输入立即数
             if (pattern.StartsWith(NumPrefix))
             {
                 var str = pattern[NumPrefix.Length..];
@@ -81,7 +124,7 @@ public partial class HexPattern : Node
                     }
                 }
 
-                SpellStack.PushStack(Callable.From(() =>num));
+                SpellStack.PushStack(Callable.From(() => num));
                 return;
             }
             GD.Print($"Invalid pattern: {pattern}");

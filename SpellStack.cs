@@ -13,7 +13,7 @@ public partial class SpellStack : Node
 
     public static Variant PopStack()
     {
-        return Stack.Count == 0 ? false : Stack.Pop().Call();
+        return Stack.Count == 0 ? "OutOfStack" : Stack.Pop().Call();
     }
 
     public static void Clear() => Stack.Clear();

@@ -184,6 +184,7 @@ public partial class CastingWaver : Control
     private void TryAddHexNode(Vector2 pos)
     {
         var hexPos = GetHexPosition(pos);
+        if(hexPos.DistanceTo(pos) > 17f) return;
         if (_hexLine.Points.Length > 0)
         {
             if(_hexLine.Points.Last() == hexPos) return;
