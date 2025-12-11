@@ -6,12 +6,26 @@ namespace CastingWaver;
 
 public partial class SpellStackManager : Node
 {
-    public static readonly Stack<Callable> SpellStack = [];
-    public static void PushStack(Callable spell) => SpellStack.Push(spell);
-    public static void PushStack(Action action) => SpellStack.Push(Callable.From(action));
-    public static void PushStack(Func<Variant> func) => SpellStack.Push(Callable.From(func));
+    public static readonly Stack<Func<Variant>> SpellStack = [];
+    public static void PushStack(Func<Variant> func) => SpellStack.Push(func);
+    public static void PushStack(Variant variant)
+    {
+        GD.Print("StackIn: " + variant);
+        PushStack(() => variant);
+    }
+
     public static int StackCount() => SpellStack.Count;
-    public static Variant PopStack() => SpellStack.Count == 0 ? default : SpellStack.Pop().Call();
+    public static Variant PopStack()
+    {
+        if (SpellStack.Count == 0)
+        {
+            GD.PrintErr("Stack is null");
+            return default;
+        }
+
+        var d = SpellStack.Pop().Invoke();
+        return d;
+    }
 
     public static void Clear() => SpellStack.Clear();
     

@@ -121,7 +121,6 @@ public partial class CastingWaver : Control
             ClearHexNode();
             return;
         }
-        GD.Print("Casting");
         var pattern = _hexLine.Points;
         var resultRaw = "";
         for (var index = 0; index < pattern.Length - 1; index++)

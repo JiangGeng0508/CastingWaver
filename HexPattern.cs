@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Godot;
+using Godot.Collections;
 using static CastingWaver.SpellStackManager;
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
@@ -9,354 +9,365 @@ namespace CastingWaver;
 
 public partial class HexPattern : Node
 {
-    public static bool IsWorld3D = true;
-    private static bool IsListMode = false;
-    public static readonly Dictionary<string, Func<Variant>> Patterns = new()
+    public static readonly bool IsWorld3D = true;
+    private static bool _isListMode;
+    public static readonly System.Collections.Generic.Dictionary<string, Action> Patterns = new()
     {
-        //打印字符串
-        {"W", () =>
-        {
-            GD.Print("Short Line");
-            return default;
-        }},
         //零向量
         {"QQQQQ",() =>
         {
-            PushStack(() => IsWorld3D ? Vector3.Zero : Vector2.Zero);
-            return default;
+            GD.Print("Zero Vector");
+            PushStack(IsWorld3D ? Vector3.Zero : Vector2.Zero);
         }},
         //X+
         {"QQQQQEA",() =>
         {
-            PushStack(() => IsWorld3D ? Vector3.Right : Vector2.Right);
-            return default;
+            GD.Print("X+ Vector");
+            PushStack(IsWorld3D ? Vector3.Right : Vector2.Right);
         }},
         //X-
         {"EEEEEQA",() =>
         {
-            PushStack(() => IsWorld3D ? Vector3.Left : Vector2.Left);
-            return default;
+            GD.Print("X- Vector");
+            PushStack(IsWorld3D ? Vector3.Left : Vector2.Left);
         }},
         //Y+
-        {"QQQQQE",() =>
+        {"QQQQQEW",() =>
         {
-            PushStack(() => IsWorld3D ? Vector3.Up : Vector2.Up);
-            return default;
+            GD.Print("Y+ Vector");
+            PushStack(IsWorld3D ? Vector3.Up : Vector2.Up);
         }},
         //Y-
-        {"EEEEEQ",() =>
+        {"EEEEEQW",() =>
         {
-            PushStack(() => IsWorld3D ? Vector3.Down : Vector2.Down);
-            return default;
+            GD.Print("Y- Vector");
+            PushStack(IsWorld3D ? Vector3.Down : Vector2.Down);
         }},
         //Z+
         {"QQQQQED",() =>
         {
-            PushStack(() => Vector3.Back);
-            return default;
+            GD.Print("Z+ Vector");
+            PushStack(Vector3.Back);
         }},
         //Z-
         {"EEEEEQD",() =>
         {
-            PushStack(() => Vector3.Forward);
-            return default;
+            GD.Print("Z- Vector");
+            PushStack(Vector3.Forward);
         }},
         {"EAWAE",() =>
         {
-            PushStack(() => Mathf.Tau);
-            return default;
+            GD.Print("Tau");
+            PushStack(Mathf.Tau);
         }},
         {"QDWDQ",() =>
         {
-            PushStack(() => Mathf.Pi);
-            return default;
+            GD.Print("Pi");
+            PushStack(Mathf.Pi);
         }},
         {"AAQ",() =>
         {
-            PushStack(() => Mathf.E);
-            return default;
+            GD.Print("E");
+            PushStack(Mathf.E);
         }},
         //False
         { "DEDQ", () => 
-        {   
-            PushStack(() => false);
-            return default;
+        {
+            GD.Print("False");
+            PushStack(false);
         }},
         //True
         { "AEAQ", () => 
         {   
-            PushStack(() => true);
-            return default;
+            GD.Print("True");
+            PushStack(true);
         }},
         //入栈一个打印
         {"D",() =>
         {
-            GD.Print("PushStackHello");
-            PushStack(() => { GD.Print("Hello World!"); });
-            return default;
+            GD.Print("HelloStack");
+            PushStack("Hello World!");
         }},
-        //出栈一次
-        {"A", PopStack},
-        //打印栈顶的元素并压回
+        //仅出栈
+        {"A", () =>
+        {
+            GD.Print("ByeStack");
+            PopStack();
+        }},
+        //弹出栈顶的元素
         {"AQA", () =>
         {
-            var d = PopStack();
-            if (d.VariantType == Variant.Type.String && d.AsString() == "OutOfStack") return default;
-            GD.Print($"peek:{d}");
-            PushStack(() => d);
-            return default;
+            GD.Print("PopStack");
+            PopStack();
         }},
-        //构造
+        //打印栈顶的元素,不弹出
+        {"ADA", () =>
+        {
+            GD.Print("PeekStack");
+            var d = PopStack();
+            if (d.VariantType == default)
+            {
+                GD.PrintErr("Stack is null");
+                return;
+            }
+            GD.Print($"[{d.VariantType}]{d}");
+            PushStack(d);
+        }},
+        //构造向量
         {"EQQQQQ",() =>
         {
+            GD.Print("Construct Vector");
             var z = PopStack();
             var y = PopStack();
             var x = PopStack();
-            PushStack(() => new Vector3(x.AsSingle(), y.AsSingle(), z.AsSingle()));
-            return default;
+            PushStack(new Vector3(x.AsSingle(), y.AsSingle(), z.AsSingle()));
         }},
-        //分离
+        //分离向量
         {"QEEEEE",() =>
         {
+            GD.Print("Deconstruct Vector");
             var v = PopStack();
             if (v.VariantType != Variant.Type.Vector3)
             {
                 GD.PrintErr("Invalid type");
-                return default;
+                return;
             }
             var vector = v.AsVector3();
-            PushStack(() => vector.X);
-            PushStack(()=> vector.Y);
-            PushStack(()=> vector.Z);
-            return default;
+            PushStack(vector.X);
+            PushStack(vector.Y);
+            PushStack(vector.Z);
         }},
         //求和
         {"WAAW",() =>
         {
+            GD.Print("Sum");
             var a =  PopStack();
             var b = PopStack();
             switch (a.VariantType, b.VariantType)
             {
                 case (Variant.Type.Vector3, Variant.Type.Vector3):
-                    PushStack(()=>a.AsVector3()+b.AsVector3());
+                    PushStack(a.AsVector3()+b.AsVector3());
                     break;
                 case (Variant.Type.Float, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3() + Vector3.One * a.AsSingle());
+                    PushStack(b.AsVector3() + Vector3.One * a.AsSingle());
                     break;
                 case (Variant.Type.Vector3, Variant.Type.Float):
-                    PushStack(() => a.AsVector3() + Vector3.One * b.AsSingle());
+                    PushStack(a.AsVector3() + Vector3.One * b.AsSingle());
                     break;
                 case (Variant.Type.Float, Variant.Type.Float):
-                    PushStack(() => a.AsSingle() + b.AsSingle());
+                    PushStack(a.AsSingle() + b.AsSingle());
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //求差
         {"WDDW",() =>
         {
+            GD.Print("Dif");
             var a =  PopStack();
             var b = PopStack();
             switch (a.VariantType, b.VariantType)
             {
                 case (Variant.Type.Vector3, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3() - a.AsVector3());
+                    PushStack(b.AsVector3() - a.AsVector3());
                     break;
                 case (Variant.Type.Float, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3() - Vector3.One * a.AsSingle());
+                    PushStack(b.AsVector3() - Vector3.One * a.AsSingle());
                     break;
                 case (Variant.Type.Vector3, Variant.Type.Float):
-                    PushStack(() => Vector3.One * b.AsSingle() - a.AsVector3());
+                    PushStack(Vector3.One * b.AsSingle() - a.AsVector3());
                     break;
                 case (Variant.Type.Float, Variant.Type.Float):
-                    PushStack(() => b.AsSingle() - a.AsSingle());
+                    PushStack(b.AsSingle() - a.AsSingle());
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //求积
         {"WAQAW",()=>{
+            GD.Print("Mul");
             var a =  PopStack();
             var b = PopStack();
             switch (a.VariantType, b.VariantType)
             {
                 case (Variant.Type.Vector3, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3().Dot(a.AsVector3()));
+                    PushStack(b.AsVector3().Dot(a.AsVector3()));
                     break;
                 case (Variant.Type.Float, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3() * a.AsSingle());
+                    PushStack(b.AsVector3() * a.AsSingle());
                     break;
                 case (Variant.Type.Vector3, Variant.Type.Float):
-                    PushStack(() => b.AsSingle() * a.AsVector3());
+                    PushStack(b.AsSingle() * a.AsVector3());
                     break;
                 case (Variant.Type.Float, Variant.Type.Float):
-                    PushStack(() => b.AsSingle() * a.AsSingle());
+                    PushStack(b.AsSingle() * a.AsSingle());
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //求商|叉乘
         {"SDEDW",() =>
         {
+            GD.Print("Sub|Cross");
             var a =  PopStack();
             var b = PopStack();
             switch (a.VariantType, b.VariantType)
             {
                 case (Variant.Type.Vector3, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3().Cross(a.AsVector3()));
+                    PushStack(b.AsVector3().Cross(a.AsVector3()));
                     break;
                 case (Variant.Type.Float, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3() / a.AsSingle());
+                    PushStack(b.AsVector3() / a.AsSingle());
                     break;
                 case (Variant.Type.Vector3, Variant.Type.Float):
-                    PushStack(() => new Vector3(
+                    PushStack(new Vector3(
                         b.AsSingle() / a.AsVector3().X,
                         b.AsSingle() / a.AsVector3().Y,
                         b.AsSingle() / a.AsVector3().Z));
                     break;
                 case (Variant.Type.Float, Variant.Type.Float):
-                    PushStack(() => b.AsSingle() / a.AsSingle());
+                    PushStack(b.AsSingle() / a.AsSingle());
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //求绝对值|模
         {"WQAQW",()=>{
+            GD.Print("Abs|Len");
             var a =  PopStack();
             switch (a.VariantType)
             {
+                case Variant.Type.Bool:
+                    PushStack(a.AsBool()? 1f : 0f);
+                    break;
                 case Variant.Type.Vector3:
-                    PushStack(() => a.AsVector3().Length());
+                    PushStack(a.AsVector3().Length());
                     break;
                 case Variant.Type.Float:
-                    PushStack(() => Mathf.Abs(a.AsSingle()));
+                    PushStack(Mathf.Abs(a.AsSingle()));
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //求幂
         {"WEDEW",() =>
         {
+            GD.Print("Pow");
             var a =  PopStack();
             var b = PopStack();
             switch (a.VariantType, b.VariantType)
             {
                 case (Variant.Type.Vector3, Variant.Type.Vector3):
-                    PushStack(() => b.AsVector3() * b.AsVector3().Dot(a.AsVector3()) / a.AsVector3().Length());
+                    PushStack(b.AsVector3() * b.AsVector3().Dot(a.AsVector3()) / a.AsVector3().Length());
                     break;
                 case (Variant.Type.Float, Variant.Type.Vector3):
-                    PushStack(() => new Vector3(
+                    PushStack(new Vector3(
                         Mathf.Pow(b.AsSingle(),a.AsVector3().X),
                         Mathf.Pow(b.AsSingle(),a.AsVector3().Y),
                         Mathf.Pow(b.AsSingle(),a.AsVector3().Z)));
                     break;
                 case (Variant.Type.Vector3, Variant.Type.Float):
-                    PushStack(() => new Vector3(
+                    PushStack(new Vector3(
                         Mathf.Pow(b.AsVector3().X,a.AsSingle()),
                         Mathf.Pow(b.AsVector3().Y,a.AsSingle()),
                         Mathf.Pow(b.AsVector3().Z,a.AsSingle())));
                     break;
                 case (Variant.Type.Float, Variant.Type.Float):
-                    PushStack(() => b.AsSingle() * a.AsSingle());
+                    PushStack(Mathf.Pow(b.AsSingle(), a.AsSingle()));
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //取底
         {"EWQ",()=>{
+            GD.Print("Floor");
             var a =  PopStack();
             switch (a.VariantType)
             {
                 case Variant.Type.Vector3:
-                    PushStack(() => a.AsVector3().Floor());
+                    PushStack(a.AsVector3().Floor());
                     break;
                 case Variant.Type.Float:
-                    PushStack(() => Mathf.Floor(a.AsSingle()));
+                    PushStack(Mathf.Floor(a.AsSingle()));
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
             }
         },
         //取顶
         {"QWE",()=>{
+            GD.Print("Ceil");
             var a =  PopStack();
             switch (a.VariantType)
             {
                 case Variant.Type.Vector3:
-                    PushStack(() => a.AsVector3().Round());
+                    PushStack(a.AsVector3().Round());
                     break;
                 case Variant.Type.Float:
-                    PushStack(() => Mathf.Round(a.AsSingle()));
+                    PushStack(Mathf.Round(a.AsSingle()));
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //求余
         {"ADDWAAD",() =>
         {
+            GD.Print("Mod");
             var a =  PopStack();
             var b = PopStack();
             switch (a.VariantType, b.VariantType)
             {
                 case (Variant.Type.Vector3, Variant.Type.Vector3):
-                    PushStack(() => new Vector3(
+                    PushStack(new Vector3(
                         b.AsVector3().X % a.AsVector3().X,
                         b.AsVector3().Y % a.AsVector3().Y,
                         b.AsVector3().Z % a.AsVector3().Z));
                     break;
                 case (Variant.Type.Float, Variant.Type.Vector3):
-                    PushStack(() => new Vector3(
+                    PushStack(new Vector3(
                         b.AsSingle() % a.AsVector3().X,
                         b.AsSingle() % a.AsVector3().Y,
                         b.AsSingle() % a.AsVector3().Z));
                     break;
                 case (Variant.Type.Vector3, Variant.Type.Float):
-                    PushStack(() => new Vector3(
+                    PushStack(new Vector3(
                         b.AsVector3().X % a.AsSingle(),
                         b.AsVector3().Y % a.AsSingle(),
                         b.AsVector3().Z % a.AsSingle()));
                     break;
                 case (Variant.Type.Float, Variant.Type.Float):
-                    PushStack(() => b.AsSingle() % a.AsSingle());
+                    PushStack(b.AsSingle() % a.AsSingle());
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //取符号/最近的轴
         {"QQQQQAWW",() =>
         {
+            GD.Print("Sign|MaxAxis");
             var a =  PopStack();
             switch (a.VariantType)
             {
                 case Variant.Type.Vector3:
-                    PushStack(() => a.AsVector3().MaxAxisIndex() switch
+                    PushStack(a.AsVector3().MaxAxisIndex() switch
                     {
                         Vector3.Axis.X => Vector3.Right,
                         Vector3.Axis.Y => Vector3.Up,
@@ -365,32 +376,31 @@ public partial class HexPattern : Node
                     });
                     break;
                 case Variant.Type.Float:
-                    PushStack(() => Mathf.Sign(a.AsSingle()));
+                    PushStack(Mathf.Sign(a.AsSingle()));
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //随机数
         {"EQQQ",() =>
         {
+            GD.Print("Random");
             PushStack(() =>
             {
                 GD.Randomize();
                 return GD.Randf();
             });
-            return default;
         }},
         //交换 AAWDD
         {"AAWDD",() =>
         {
+            GD.Print("Swap");
             var a = PopStack();
             var b = PopStack();
-            PushStack(() => a);
-            PushStack(() => b);
-            return default;
+            PushStack(a);
+            PushStack(b);
         }},
         //提升 AAEAA
         {"AAEAA",() =>
@@ -398,10 +408,9 @@ public partial class HexPattern : Node
             var a = PopStack();
             var b = PopStack();
             var c = PopStack();
-            PushStack(() => b);
-            PushStack(() => a);
-            PushStack(() => c);
-            return default;
+            PushStack(b);
+            PushStack(a);
+            PushStack(c);
         }},
         //下沉 DDQDD
         {"DDQDD",() =>
@@ -409,38 +418,34 @@ public partial class HexPattern : Node
             var a = PopStack();
             var b = PopStack();
             var c = PopStack();
-            PushStack(() => a);
-            PushStack(() => c);
-            PushStack(() => b);
-            return default;
+            PushStack(a);
+            PushStack(c);
+            PushStack(b);
         }},
         //复制 AADAA
         {"AADAA",() =>
         {
             var a = PopStack();
-            PushStack(() => a);
-            PushStack(() => a);
-            return default;
+            PushStack(a);
+            PushStack(a);
         }},
         //预测 AAEDD
         {"AAEDD",() =>
         {
             var a = PopStack();
             var b = PopStack();
-            PushStack(() => b);
-            PushStack(() => a);
-            PushStack(() => b);
-            return default;
+            PushStack(b);
+            PushStack(a);
+            PushStack(b);
         }},
         //回想 DDQAA
         {"DDQAA",() =>
         {
             var a = PopStack();
             var b = PopStack();
-            PushStack(() => a);
-            PushStack(() => b);
-            PushStack(() => a);
-            return default;
+            PushStack(a);
+            PushStack(b);
+            PushStack(a);
         }},
         //增殖 AADAADAA
         {"AADAADAA",() =>
@@ -450,34 +455,31 @@ public partial class HexPattern : Node
             switch (a.VariantType)
             {
                 case Variant.Type.Float:
-                    for (var i = 0; i < a.AsSingle(); i++) PushStack(() => b);
+                    for (var i = 0; i < a.AsSingle(); i++) PushStack(b);
                     break;
                 case Variant.Type.Int:
-                    for (var i = 0; i < a.AsInt32(); i++) PushStack(() => b);
+                    for (var i = 0; i < a.AsInt32(); i++) PushStack(b);
                     break;
                 default:
                     GD.PrintErr("Invalid type");
                     break;
             }
-            PushStack(() => b);
-            return default;
+            PushStack(b);
         }},
         //双倍复制 AADADAAW
         {"AADADAAW",() =>
         {
             var a = PopStack();
             var b = PopStack();
-            PushStack(() => b);
-            PushStack(() => b);
-            PushStack(() => a);
-            PushStack(() => a);
-            return default;
+            PushStack(b);
+            PushStack(b);
+            PushStack(a);
+            PushStack(a);
         }},
         //反思 QWAEAWQAEAQA
         {"QWAEAWQAEAQA",() =>
         {
-            PushStack(() => StackCount());
-            return default;
+            PushStack(StackCount());
         }},
         //挑拣 DDAD
         {"DDAD",() =>
@@ -496,7 +498,6 @@ public partial class HexPattern : Node
                     GD.PrintErr("Invalid type");
                     break;
             }
-            return default;
         }},
         //挑拣复制 AADA
         {"AADA",() =>
@@ -515,33 +516,129 @@ public partial class HexPattern : Node
                     GD.PrintErr("Invalid type");
                     break;
             }
-
-            return default;
         }},
         //\esc QQQAW
+        {"QQQAW",() =>
+        {
+            PushStack(new Array<string>());
+        }},
         //( QQQ
         {"QQQ",() =>
         {
-            IsListMode = true;
-            return default;
+            PushStack(new Array<string>());
+            _isListMode = true;
+            GD.Print("RecordStart");
         }},
         //) EEE
         {"EEE",() =>
         {
-            IsListMode = false;
-            return default;
+            _isListMode = false;
+            GD.Print("RecordEnd");
         }},
         //\b EEEDW
-        
+        { "EEEDW", () =>
+        {
+            var list = PopStack();
+            if (list.VariantType != Variant.Type.Array)
+            {
+                GD.PrintErr("Invalid type");
+                return;
+            }
+
+            var array = list.AsGodotArray();
+            if(array.Count == 0)
+            {
+                GD.PrintErr("Array is empty");
+                return;
+            }
+            array.RemoveAt(array.Count - 1);
+            PushStack(array);
+        }},
         //run DEAQQ
-        //run&break? QWAQDE
+        { "DEAQQ", () =>
+        {
+            var list = PopStack();
+            if (list.VariantType != Variant.Type.Array)
+            {
+                GD.PrintErr("Invalid type");
+                return;
+            }
+
+            var array = list.AsGodotArray();
+            for (var index = 0; index < array.Count; index++)
+            {
+                var str = array[index];
+                var pattern = str.AsString();
+                if (pattern == "AQDEE") return;
+                if (pattern == "QWAQDE") break;
+                if (pattern == "QQAED")
+                {
+                    PushStack(array.Count - index - 1);
+                    continue;
+                }
+
+                Cast(pattern, true);
+            }
+        }},
         //foreach DADAD
-        //return AQDEE
-        //last count QQAED
         
         //any->bool AW
+        {
+            "AW", () =>
+            {
+                var a = PopStack();
+                switch (a.VariantType)
+                {
+                    case Variant.Type.Bool:
+                        PushStack(a.AsBool());
+                        break;
+                    case Variant.Type.Int:
+                        PushStack(a.AsInt32() != 0);
+                        break;
+                    case Variant.Type.Float:
+                        PushStack(!Mathf.IsZeroApprox(a.AsSingle()));
+                        break;
+                    case Variant.Type.Vector2:
+                        PushStack(a.AsVector2() != Vector2.Zero);
+                        break;
+                    case Variant.Type.Vector3:
+                        PushStack(a.AsVector3() != Vector3.Zero);
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //bool->num WQAQW
         //not DW
+        {
+            "DW", () =>
+            {
+                var a = PopStack();
+                switch (a.VariantType)
+                {
+                    case Variant.Type.Bool:
+                        PushStack(!a.AsBool());
+                        break;
+                    case Variant.Type.Int:
+                        PushStack(a.AsInt32() == 0);
+                        break;
+                    case Variant.Type.Float:
+                        PushStack(Mathf.IsZeroApprox(a.AsSingle()));
+                        break;
+                    case Variant.Type.Vector2:
+                        PushStack(a.AsVector2() == Vector2.Zero);
+                        break;
+                    case Variant.Type.Vector3:
+                        PushStack(a.AsVector3() == Vector3.Zero);
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //or WAW
         //and WDW
         //nor DWA
@@ -554,16 +651,119 @@ public partial class HexPattern : Node
         //<= QQ
         
         //sin QQQQQAA
+        {"QQQQQAA",() =>
+        {
+            var a = PopStack();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(Mathf.Sin(a.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
         //cos QQQQQAD
+        {"QQQQQAD",() =>
+        {
+            var a = PopStack();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(Mathf.Cos(a.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
         //tan WQQQQQADQ
+        {"WQQQQQADQ",() =>
+        {
+            var a = PopStack();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(Mathf.Tan(a.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
         //asin DDEEEEE
+        {"DDEEEEE",() =>
+        {
+            var a = PopStack();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(Mathf.Asin(a.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
         //acos ADEEEEE
+        {"ADEEEEE",() =>
+        {
+            var a = PopStack();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(Mathf.Acos(a.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
         //atan EADEEEEEW
+        {"EADEEEEEW",() =>
+        {
+            var a = PopStack();
+            switch (a.VariantType)
+            {
+                case Variant.Type.Float:
+                    PushStack(Mathf.Atan(a.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
         //atan x y DEADEEEEEWD
+        {"DEADEEEEEWD",() =>
+        {
+            var y = PopStack();
+            var x = PopStack();
+            switch (x.VariantType, y.VariantType)
+            {
+                case (Variant.Type.Float, Variant.Type.Float):
+                    PushStack(Mathf.Atan2(x.AsSingle(), y.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
         //ln EQAQE
+        {"EQAQE",() =>
+        {
+            var x = PopStack();
+            switch (x.VariantType)
+            {
+                case (Variant.Type.Float):
+                    PushStack(Mathf.Log(x.AsSingle()));
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    break;
+            }
+        }},
     };
-    //   {"",(()=>{})},
-    //   PushStack(()=>);
 
     public override void _Ready()
     {
@@ -573,10 +773,9 @@ public partial class HexPattern : Node
             if(GetTree().GetNodeCountInGroup("Player") == 0)
             {
                 GD.PrintErr("Get player failed");
-                return 0;
+                return;
             }
-            PushStack(() => GetTree().GetNodesInGroup("Player")[0].GetPath());
-            return default;
+            PushStack(GetTree().GetNodesInGroup("Player")[0].GetPath());
         });
         Patterns.Add("AWQQQWAQW", () =>
         {
@@ -587,8 +786,8 @@ public partial class HexPattern : Node
             {
                 if (d2.VariantType != Variant.Type.Vector3 || d1.VariantType != Variant.Type.NodePath)
                 {
-                    GD.PrintErr("Invalid stack");
-                    return 0;
+                    GD.PrintErr("Invalid type");
+                    return;
                 }
                 if (GetNode(d1.AsNodePath()) is RigidBody3D body)
                 {
@@ -599,23 +798,37 @@ public partial class HexPattern : Node
             {
                 if (d2.VariantType != Variant.Type.Vector2 || d1.VariantType != Variant.Type.NodePath)
                 {
-                    GD.PrintErr("Invalid stack");
-                    return 0;
+                    GD.PrintErr("Invalid type");
+                    return;
                 }
                 if (GetNode(d1.AsNodePath()) is RigidBody2D body)
                 {
                     body.ApplyCentralImpulse(d2.AsVector2() * 40f);
                 }
             }
-            return default;
         });
     }
 
     public const string NumPrefix = "AQAA";
     public const string NegPrefix = "DEDD";
 
-    public static void Cast(string pattern)
+    public static void Cast(string pattern,bool fromlist = false)
     {
+        if (pattern != "EEE" && _isListMode && !fromlist)
+        {
+            var list = PopStack();
+            if (list.VariantType != Variant.Type.Array)
+            {
+                GD.PrintErr($"Invalid type:{list.VariantType}");
+                return;
+            }
+
+            GD.Print("Recording");
+            var array = list.AsGodotArray();
+            array.Add(pattern);
+            PushStack(array);
+            return;
+        }
         if(Patterns.TryGetValue(pattern, out var spell))   
             spell.Invoke();
         else
@@ -625,7 +838,7 @@ public partial class HexPattern : Node
             { 
                 var str = pattern[NumPrefix.Length..];
                 var num = ParseNum(str);
-                PushStack(Callable.From(() => num));
+                PushStack(num);
                 return;
             }
             //输入立即数的相反数
@@ -633,7 +846,7 @@ public partial class HexPattern : Node
             {
                 var str = pattern[NegPrefix.Length..];
                 var num = ParseNum(str);
-                PushStack(Callable.From(() => -num));
+                PushStack(-num);
                 return;
             }
             GD.Print($"Invalid pattern: {pattern}");
