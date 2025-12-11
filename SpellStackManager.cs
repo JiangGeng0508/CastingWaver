@@ -11,7 +11,7 @@ public partial class SpellStackManager : Node
     public static void PushStack(Action action) => SpellStack.Push(Callable.From(action));
     public static void PushStack(Func<Variant> func) => SpellStack.Push(Callable.From(func));
     public static int StackCount() => SpellStack.Count;
-    public static Variant PopStack() => SpellStack.Count == 0 ? "OutOfStack" : SpellStack.Pop().Call();
+    public static Variant PopStack() => SpellStack.Count == 0 ? default : SpellStack.Pop().Call();
 
     public static void Clear() => SpellStack.Clear();
     
