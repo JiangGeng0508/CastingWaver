@@ -3,11 +3,6 @@
 [ext_resource type="Texture2D" uid="uid://sx3ran0s3vl7" path="res://icon.svg" id="1_b4pt0"]
 [ext_resource type="PackedScene" uid="uid://pklvjwd8fjkf" path="res://CastingWaver.tscn" id="1_qu5u5"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qriv5"]
-albedo_texture = ExtResource("1_b4pt0")
-
-[sub_resource type="BoxMesh" id="BoxMesh_qh4x0"]
-
 [sub_resource type="SphereShape3D" id="SphereShape3D_qh4x0"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xwhs2"]
@@ -18,33 +13,41 @@ albedo_texture = ExtResource("1_b4pt0")
 [sub_resource type="BoxShape3D" id="BoxShape3D_b4pt0"]
 size = Vector3(52.47534, 0.9765625, 47.087646)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qriv5"]
+albedo_texture = ExtResource("1_b4pt0")
+
+[sub_resource type="BoxMesh" id="BoxMesh_qh4x0"]
+
 [node name="TestWorld3D" type="Node3D"]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(50.311054, 0, 0, 0, 1, 0, 0, 0, 46.009903, 0, 0, 0)
-material_override = SubResource("StandardMaterial3D_qriv5")
-mesh = SubResource("BoxMesh_qh4x0")
-
 [node name="RigidBody3D" type="RigidBody3D" parent="." groups=["Player"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 25.288303, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
 shape = SubResource("SphereShape3D_qh4x0")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_xwhs2")
 mesh = SubResource("SphereMesh_qu5u5")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.749002, 0.6625678, 0, -0.6625678, 0.749002, 0, 8.207074, 4.692609)
+transform = Transform3D(-0.8830978, -0.1874555, 0.43011475, 0.041970924, 0.881483, 0.4703471, -0.46730793, 0.43341482, -0.7705681, 13.143017, 24.617252, -22.49461)
 
 [node name="CanvasLayer" parent="Camera3D" instance=ExtResource("1_qu5u5")]
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0018310547, -0.01171875, 3.1654053)
 shape = SubResource("BoxShape3D_b4pt0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+transform = Transform3D(50.311054, 0, 0, 0, 1, 0, 0, 0, 46.009903, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_qriv5")
+mesh = SubResource("BoxMesh_qh4x0")
+skeleton = NodePath("../..")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.9976981, -0.06691471, 0.011003751, -0.0105860075, 0.006594245, 0.9999223, -0.066982076, -0.9977369, 0.005870709, 0, 20, 0)

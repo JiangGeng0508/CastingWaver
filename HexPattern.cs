@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using static CastingWaver.SpellStackManager;
-
+// ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
 
 namespace CastingWaver;
@@ -10,6 +10,7 @@ namespace CastingWaver;
 public partial class HexPattern : Node
 {
     public static bool IsWorld3D = true;
+    private static bool IsListMode = false;
     public static readonly Dictionary<string, Spell> Patterns = new()
     {
         //打印字符串
@@ -471,6 +472,47 @@ public partial class HexPattern : Node
                     break;
             }
         })},
+        //\esc QQQAW
+        //( QQQ
+        {"QQQ",new Spell(() =>
+        {
+            IsListMode = true;
+        })},
+        //) EEE
+        {"EEE",new Spell(() =>
+        {
+            IsListMode = false;
+        })},
+        //\b EEEDW
+        
+        //run DEAQQ
+        //run&break? QWAQDE
+        //foreach DADAD
+        //return AQDEE
+        //last count QQAED
+        
+        //any->bool AW
+        //bool->num WQAQW
+        //not DW
+        //or WAW
+        //and WDW
+        //nor DWA
+        //t?a:b AWDD
+        //== AD
+        //!= DA
+        //> E
+        //< Q
+        //>= EE
+        //<= QQ
+        
+        //sin QQQQQAA
+        //cos QQQQQAD
+        //tan WQQQQQADQ
+        //asin DDEEEEE
+        //acos ADEEEEE
+        //atan EADEEEEEW
+        //atan x y DEADEEEEEWD
+        //ln EQAQE
     };
     //   {"",new Spell(()=>{})},
     //   PushStack(()=>);
