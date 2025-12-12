@@ -10,6 +10,11 @@ public partial class SpellStackManager : Node
     public static void PushStack(Func<Variant> func) => SpellStack.Push(func);
     public static void PushStack(Variant variant)
     {
+        if (variant.VariantType == default)
+        {
+            GD.PrintErr("Variant is null");
+            return;
+        }
         GD.Print("StackIn: " + variant);
         PushStack(() => variant);
     }

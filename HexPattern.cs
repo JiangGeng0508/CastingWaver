@@ -2,6 +2,8 @@ using System;
 using Godot;
 using Godot.Collections;
 using static CastingWaver.SpellStackManager;
+using Array = Godot.Collections.Array;
+
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
 
@@ -10,7 +12,10 @@ namespace CastingWaver;
 public partial class HexPattern : Node
 {
     public static readonly bool IsWorld3D = true;
-    private static bool _isListMode;
+    private static bool _isRecordMode;
+    private static bool _catchPattern;
+    private static Action<string> _catchOperation;
+    
     public static readonly System.Collections.Generic.Dictionary<string, Action> Patterns = new()
     {
         //零向量
@@ -97,19 +102,14 @@ public partial class HexPattern : Node
         //弹出栈顶的元素
         {"AQA", () =>
         {
-            GD.Print("PopStack");
-            PopStack();
+            var d = PopStack();
+            GD.Print($"[{d.VariantType}]{d}");
         }},
         //打印栈顶的元素,不弹出
         {"ADA", () =>
         {
             GD.Print("PeekStack");
             var d = PopStack();
-            if (d.VariantType == default)
-            {
-                GD.PrintErr("Stack is null");
-                return;
-            }
             GD.Print($"[{d.VariantType}]{d}");
             PushStack(d);
         }},
@@ -156,6 +156,9 @@ public partial class HexPattern : Node
                     break;
                 case (Variant.Type.Float, Variant.Type.Float):
                     PushStack(a.AsSingle() + b.AsSingle());
+                    break;
+                case (Variant.Type.Array, Variant.Type.Array):
+                    PushStack(a.AsGodotArray() + b.AsGodotArray());
                     break;
                 default:
                     GD.PrintErr("Invalid type");
@@ -521,19 +524,29 @@ public partial class HexPattern : Node
         {"QQQAW",() =>
         {
             PushStack(new Array<string>());
+            CatchNextPattern(s =>
+            {
+                var a = PopStack();
+                if (a.VariantType != Variant.Type.Array)
+                {
+                    GD.PrintErr("Invalid type");
+                    return;
+                }
+                var array = a.AsGodotArray();
+                array.Add(s);
+                PushStack(array);
+            });
         }},
         //( QQQ
         {"QQQ",() =>
         {
             PushStack(new Array<string>());
-            _isListMode = true;
-            GD.Print("RecordStart");
+            SetRecordMode(true);
         }},
         //) EEE
         {"EEE",() =>
         {
-            _isListMode = false;
-            GD.Print("RecordEnd");
+            SetRecordMode(false);
         }},
         //\b EEEDW
         { "EEEDW", () =>
@@ -565,23 +578,43 @@ public partial class HexPattern : Node
             }
 
             var array = list.AsGodotArray();
-            for (var index = 0; index < array.Count; index++)
+            RunPatternList(array);
+        }},
+        //foreach DADAD
+        { "DADAD", () =>
+        {
+            var listA = PopStack();
+            var listB = PopStack();
+            switch (listA.VariantType, listB.VariantType)
             {
-                var str = array[index];
+                case (Variant.Type.Array, Variant.Type.Array):
+                    break;
+                default:
+                    GD.PrintErr("Invalid type");
+                    return;
+            }
+            
+            var arrayA = listA.AsGodotArray();
+            var arrayB = listB.AsGodotArray();
+            var arrayC = new Array();
+            for (var index = 0; index < arrayB.Count; index++)
+            {
+                var str = arrayB[index];
                 var pattern = str.AsString();
                 if (pattern == "AQDEE") return;
                 if (pattern == "QWAQDE") break;
                 if (pattern == "QQAED")
                 {
-                    PushStack(array.Count - index - 1);
+                    PushStack(arrayB.Count - index - 1);
                     continue;
                 }
 
                 Cast(pattern, true);
+                RunPatternList(arrayA);
+                arrayC.Add(PopStack());
             }
+            PushStack(arrayC);
         }},
-        //foreach DADAD
-        
         //any->bool AW
         {
             "AW", () =>
@@ -610,7 +643,7 @@ public partial class HexPattern : Node
                 }
             }
         },
-        //bool->num WQAQW
+        //bool->num WQAQW defined in other line
         //not DW
         {
             "DW", () =>
@@ -640,15 +673,188 @@ public partial class HexPattern : Node
             }
         },
         //or WAW
+        {
+            "WAW", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Bool, Variant.Type.Bool):
+                        PushStack(a.AsBool() || b.AsBool());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //and WDW
-        //nor DWA
+        {
+            "WDW", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Bool, Variant.Type.Bool):
+                        PushStack(a.AsBool() && b.AsBool());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
+        //xor DWA
+        {
+            "DWA", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Bool, Variant.Type.Bool):
+                        PushStack(a.AsBool() ^ b.AsBool());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //t?a:b AWDD
+        {
+            "AWDD", () =>
+            {
+                var t = PopStack();
+                var a = PopStack();
+                var b = PopStack();
+                switch (t.VariantType)
+                {
+                    case Variant.Type.Bool:
+                        PushStack(t.AsBool() ? a : b);
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //== AD
+        {
+            "AD", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Bool, Variant.Type.Bool):
+                        PushStack(a.AsBool() == b.AsBool());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //!= DA
+        {
+            "DA", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Bool, Variant.Type.Bool):
+                        PushStack(a.AsBool() != b.AsBool());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //> E
+        {
+            "E", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Float, Variant.Type.Float):
+                        PushStack(b.AsSingle() > a.AsSingle());
+                        break;
+                    case (Variant.Type.Int, Variant.Type.Int):
+                        PushStack(b.AsInt32() > a.AsInt32());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //< Q
+        {
+            "Q", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Float, Variant.Type.Float):
+                        PushStack(b.AsSingle() < a.AsSingle());
+                        break;
+                    case (Variant.Type.Int, Variant.Type.Int):
+                        PushStack(b.AsInt32() < a.AsInt32());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //>= EE
+        {
+            "EE", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Float, Variant.Type.Float):
+                        PushStack(b.AsSingle() >= a.AsSingle());
+                        break;
+                    case (Variant.Type.Int, Variant.Type.Int):
+                        PushStack(b.AsInt32() >= a.AsInt32());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         //<= QQ
+        {
+            "QQ", () =>
+            {
+                var a = PopStack();
+                var b = PopStack();
+                switch (a.VariantType, b.VariantType)
+                {
+                    case (Variant.Type.Float, Variant.Type.Float):
+                        PushStack(b.AsSingle() <= a.AsSingle());
+                        break;
+                    case (Variant.Type.Int, Variant.Type.Int):
+                        PushStack(b.AsInt32() <= a.AsInt32());
+                        break;
+                    default:
+                        GD.PrintErr("Invalid type");
+                        break;
+                }
+            }
+        },
         
         //sin QQQQQAA
         {"QQQQQAA",() =>
@@ -765,6 +971,24 @@ public partial class HexPattern : Node
         }},
     };
 
+    private static void RunPatternList(Array array)
+    {
+        for (var index = 0; index < array.Count; index++)
+        {
+            var str = array[index];
+            var pattern = str.AsString();
+            if (pattern == "AQDEE") return;
+            if (pattern == "QWAQDE") break;
+            if (pattern == "QQAED")
+            {
+                PushStack(array.Count - index - 1);
+                continue;
+            }
+
+            Cast(pattern, true);
+        }
+    }
+
     public override void _Ready()
     {
         Patterns.Add("QAQ", () =>
@@ -814,7 +1038,7 @@ public partial class HexPattern : Node
 
     public static void Cast(string pattern,bool fromlist = false)
     {
-        if (pattern != "EEE" && _isListMode && !fromlist)
+        if (pattern != "EEE" && _isRecordMode && !fromlist)
         {
             var list = PopStack();
             if (list.VariantType != Variant.Type.Array)
@@ -828,6 +1052,19 @@ public partial class HexPattern : Node
             array.Add(pattern);
             PushStack(array);
             return;
+        }
+
+        if (_catchPattern)
+        {
+            if (_catchOperation is not null)
+            {
+                _catchOperation.Invoke(pattern);
+                return;
+            }
+            else
+            {
+                GD.PrintErr("catch operation is null");
+            }
         }
         if(Patterns.TryGetValue(pattern, out var spell))   
             spell.Invoke();
@@ -877,5 +1114,28 @@ public partial class HexPattern : Node
                 }
             return num;
             }
+    }
+    private static bool GetRecordMode() => _isRecordMode;
+    private static void SetRecordMode(bool mode)
+    {
+        _isRecordMode = mode;
+        GD.Print($"Record mode : {(mode ? "On" : "Off")}");
+    }
+
+    private static void CatchNextPattern(Action<string> operation)
+    {
+        if (_catchPattern)
+        {
+            GD.PrintErr("already catching pattern");
+            return;
+        }
+        
+        operation += _ =>
+        {
+            _catchPattern = false;
+            _catchOperation = null;
+        };
+        _catchOperation = operation;
+        _catchPattern = true;
     }
 }
