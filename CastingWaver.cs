@@ -9,6 +9,7 @@ public partial class CastingWaver : Control
     private TileMapLayer _hexCanvas;
     private Line2D _hexLine;
     private Line2D _cursorLine;
+    private Control _dirAssist;
 
     private static string RawMapping(Vector2I coord) => coord switch
     {
@@ -80,6 +81,7 @@ public partial class CastingWaver : Control
     {
         _hexCanvas = GetNode<TileMapLayer>("HexCanvas");
         _cursorLine = GetNode<Line2D>("CursorLine");
+        _dirAssist = GetNode<Control>("CursorLine/DirAssist");
         CreateHexLine();
     }
     private void CreateHexLine()
@@ -142,6 +144,7 @@ public partial class CastingWaver : Control
     public override void _Process(double delta)
     {
         UpdateCursorLine();
+        UpdateDirAssist();
     }
 
     private void UpdateCursorLine()
@@ -202,10 +205,54 @@ public partial class CastingWaver : Control
         }
         _hexLine.AddPoint(hexPos);
         UpdateCursorLine();
+        UpdateDirAssist();
     }
     
     private bool ValidPos(Vector2 pos)
     {
         return RawMapping(_hexCanvas.LocalToMap(pos) - _hexCanvas.LocalToMap(_hexLine.Points.Last())) != "S" && !IsCellOccupied(pos);
+    }
+
+    private void UpdateDirAssist()
+    {
+        if(_hexLine.Points.Length < 2)
+        {
+            _dirAssist.Hide();
+            return;
+        }
+        var lastCoord = _hexCanvas.LocalToMap(_hexLine.Points.Last());
+        var secondLastCoord = _hexCanvas.LocalToMap(_hexLine.Points[^2]);
+        switch (RawMapping(lastCoord - secondLastCoord))
+        {
+            case "D":
+                _dirAssist.SetRotationDegrees(0f);
+                break;
+            case "E":
+                _dirAssist.SetRotationDegrees(-60f);
+                break;
+            case "W":
+                _dirAssist.SetRotationDegrees(-120f);
+                break;
+            case "A":
+                _dirAssist.SetRotationDegrees(180f);
+                break;
+            case "Z":
+                _dirAssist.SetRotationDegrees(120f);
+                break;
+            case "X":
+                _dirAssist.SetRotationDegrees(60f);
+                break;
+            default:
+                _dirAssist.Hide();
+                return;
+        }
+
+        foreach (var node in _dirAssist.GetChildren())
+        {
+            if(node is Label label) label.SetRotationDegrees(-_dirAssist.RotationDegrees);
+        }
+        
+        _dirAssist.Show();
+        _dirAssist.Position = _hexLine.Points.Last();
     }
 }
