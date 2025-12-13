@@ -318,10 +318,10 @@ public partial class HexPattern : Node
             switch (a.VariantType)
             {
                 case Variant.Type.Vector3:
-                    PushStack(a.AsVector3().Round());
+                    PushStack(a.AsVector3().Ceil());
                     break;
                 case Variant.Type.Float:
-                    PushStack(Mathf.Round(a.AsSingle()));
+                    PushStack(Mathf.Ceil(a.AsSingle()));
                     break;
                 default:
                     GD.PrintErr("Invalid type");

@@ -102,6 +102,8 @@ public partial class CastingWaver : Control
                 if (mouseButton.IsReleased())
                 {
                     Casting();
+                    UpdateCursorLine();
+                    UpdateDirAssist();
                 }
             }
             else if(mouseButton.ButtonIndex == MouseButton.Right && mouseButton.IsPressed())
@@ -113,6 +115,8 @@ public partial class CastingWaver : Control
         {
             if (!_mouse1Pressed) return;
             TryAddHexNode(mouseEvent.Position);
+            UpdateCursorLine();
+            UpdateDirAssist();
         }
     }
 
@@ -139,12 +143,6 @@ public partial class CastingWaver : Control
         foreach (var point in _hexLine.Points) SetCanvas(point);
         GetNode<LineEdit>("LineEdit").Text = result;
         CreateHexLine();
-    }
-
-    public override void _Process(double delta)
-    {
-        UpdateCursorLine();
-        UpdateDirAssist();
     }
 
     private void UpdateCursorLine()
@@ -203,6 +201,7 @@ public partial class CastingWaver : Control
                 return;
             }
         }
+        if(IsCellOccupied(hexPos)) return;
         _hexLine.AddPoint(hexPos);
         UpdateCursorLine();
         UpdateDirAssist();
