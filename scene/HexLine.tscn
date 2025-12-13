@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://lo7wmfp385m5"]
+[gd_scene load_steps=4 format=3 uid="uid://lo7wmfp385m5"]
 
 [sub_resource type="Shader" id="Shader_seky4"]
 code = "shader_type canvas_item;
@@ -38,13 +38,9 @@ shader_parameter/opacity = 1.0
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.7986332), 0.0, 0.0, 0, 0]
 point_count = 2
 
-[sub_resource type="Gradient" id="Gradient_seky4"]
-colors = PackedColorArray(0, 0, 0, 1, 1, 0, 1, 1)
-
 [node name="HexLine" type="Line2D" groups=["HexLines"]]
 material = SubResource("ShaderMaterial_pdv8e")
 width_curve = SubResource("Curve_seky4")
-gradient = SubResource("Gradient_seky4")
 texture_mode = 1
 joint_mode = 2
 begin_cap_mode = 2

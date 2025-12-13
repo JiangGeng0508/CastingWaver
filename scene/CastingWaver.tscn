@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=4 uid="uid://pklvjwd8fjkf"]
 
-[ext_resource type="Script" uid="uid://bh8wrcygudffh" path="res://CastingWaver.cs" id="1_3fhrq"]
-[ext_resource type="TileSet" uid="uid://ctppmbqoht084" path="res://CastingWaver.tres" id="2_o5gvj"]
-[ext_resource type="PackedScene" uid="uid://lo7wmfp385m5" path="res://HexLine.tscn" id="3_nj1vx"]
+[ext_resource type="Script" uid="uid://bh8wrcygudffh" path="res://src/CastingWaver.cs" id="1_3fhrq"]
+[ext_resource type="TileSet" uid="uid://ctppmbqoht084" path="res://scene/CastingWaver.tres" id="2_o5gvj"]
+[ext_resource type="PackedScene" uid="uid://lo7wmfp385m5" path="res://scene/HexLine.tscn" id="3_nj1vx"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 

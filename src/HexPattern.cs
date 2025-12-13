@@ -15,8 +15,8 @@ public partial class HexPattern : Node
     private static bool _isRecordMode;
     private static bool _catchPattern;
     private static Action<string> _catchOperation;
-    
-    public static readonly System.Collections.Generic.Dictionary<string, Action> Patterns = new()
+
+    private static readonly System.Collections.Generic.Dictionary<string, Action> Patterns = new()
     {
         //零向量
         {"QQQQQ",() =>
@@ -1033,8 +1033,8 @@ public partial class HexPattern : Node
         });
     }
 
-    public const string NumPrefix = "AQAA";
-    public const string NegPrefix = "DEDD";
+    private const string NumPrefix = "AQAA";
+    private const string NegPrefix = "DEDD";
 
     public static void Cast(string pattern,bool fromlist = false)
     {
@@ -1137,5 +1137,13 @@ public partial class HexPattern : Node
         };
         _catchOperation = operation;
         _catchPattern = true;
+    }
+    public static void AddPattern(string pattern, Action spell)
+    {
+        if (!Patterns.TryAdd(pattern, spell))
+        {
+            GD.PrintErr($"Pattern {pattern} already exists");
+            return;
+        }
     }
 }

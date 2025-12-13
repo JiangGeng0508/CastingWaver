@@ -17,8 +17,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-HexPattern="*res://HexPattern.cs"
-SpellStackManager="*res://SpellStackManager.cs"
+HexPattern="*res://src/HexPattern.cs"
+SpellStackManager="*res://src/SpellStackManager.cs"
 
 [dotnet]
 

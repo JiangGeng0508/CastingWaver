@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://bot6fwd4crbg3"]
 
 [ext_resource type="Texture2D" uid="uid://sx3ran0s3vl7" path="res://icon.svg" id="1_b4pt0"]
-[ext_resource type="PackedScene" uid="uid://pklvjwd8fjkf" path="res://CastingWaver.tscn" id="1_qu5u5"]
+[ext_resource type="PackedScene" uid="uid://pklvjwd8fjkf" path="res://scene/CastingWaver.tscn" id="1_qu5u5"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_qh4x0"]
 
