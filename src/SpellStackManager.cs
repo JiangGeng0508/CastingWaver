@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace CastingWaver;
@@ -33,5 +34,5 @@ public partial class SpellStackManager : Node
     }
 
     public static void Clear() => SpellStack.Clear();
-    
+    public static string PrintStack() => SpellStack.Aggregate("Stack:", (current, func) => current + ("\n" + func.Invoke()));
 }

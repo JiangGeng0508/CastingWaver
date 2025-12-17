@@ -10,6 +10,7 @@ public partial class CastingWaver : Control
     private Line2D _hexLine;
     private Line2D _cursorLine;
     private Control _dirAssist;
+    private RichTextLabel _stackVisual;
 
     private static string RawMapping(Vector2I coord) => coord switch
     {
@@ -82,6 +83,7 @@ public partial class CastingWaver : Control
         _hexCanvas = GetNode<TileMapLayer>("HexCanvas");
         _cursorLine = GetNode<Line2D>("CursorLine");
         _dirAssist = GetNode<Control>("CursorLine/DirAssist");
+        _stackVisual = GetNode<RichTextLabel>("StackVisual");
         CreateHexLine();
     }
     private void CreateHexLine()
@@ -143,6 +145,7 @@ public partial class CastingWaver : Control
         foreach (var point in _hexLine.Points) SetCanvas(point);
         GetNode<LineEdit>("LineEdit").Text = result;
         CreateHexLine();
+        ShowStack();
     }
 
     private void UpdateCursorLine()
@@ -253,5 +256,10 @@ public partial class CastingWaver : Control
         
         _dirAssist.Show();
         _dirAssist.Position = _hexLine.Points.Last();
+    }
+
+    public void ShowStack()
+    {
+        _stackVisual.Text = SpellStackManager.PrintStack();
     }
 }

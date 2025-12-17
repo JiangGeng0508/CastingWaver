@@ -215,7 +215,7 @@ public partial class HexPattern : Node
             }
         }},
         //求商|叉乘
-        {"SDEDW",() =>
+        {"WDEDW",() =>
         {
             GD.Print("Sub|Cross");
             var a =  PopStack();
@@ -483,6 +483,7 @@ public partial class HexPattern : Node
         {"QWAEAWQAEAQA",() =>
         {
             PushStack(StackCount());
+            PrintStack();
         }},
         //挑拣 DDAD
         {"DDAD",() =>
