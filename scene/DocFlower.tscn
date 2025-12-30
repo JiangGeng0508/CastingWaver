@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://bvr1txbcoa1gu"]
+
+[ext_resource type="Script" uid="uid://8rtahpuu3qco" path="res://scene/DocFlower.cs" id="1_s30pi"]
+
+[node name="DocFlower" type="FoldableContainer"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -316.0
+offset_top = -297.0
+grow_horizontal = 0
+grow_vertical = 0
+title_position = 1
+script = ExtResource("1_s30pi")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 2
+
+[node name="DocContainer" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2

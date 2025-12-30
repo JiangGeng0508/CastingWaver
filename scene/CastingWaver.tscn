@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bh8wrcygudffh" path="res://src/CastingWaver.cs" id="1_3fhrq"]
 [ext_resource type="TileSet" uid="uid://ctppmbqoht084" path="res://scene/CastingWaver.tres" id="2_o5gvj"]
 [ext_resource type="PackedScene" uid="uid://lo7wmfp385m5" path="res://scene/HexLine.tscn" id="3_nj1vx"]
-[ext_resource type="Script" uid="uid://8rtahpuu3qco" path="res://scene/DocFlower.cs" id="4_codri"]
+[ext_resource type="PackedScene" uid="uid://bvr1txbcoa1gu" path="res://scene/DocFlower.tscn" id="4_codri"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 
@@ -134,22 +134,8 @@ offset_bottom = 647.0
 bbcode_enabled = true
 text = "Stack:"
 
-[node name="DocFlower" type="FoldableContainer" parent="CastingWaver"]
+[node name="DocFlower" parent="CastingWaver" instance=ExtResource("4_codri")]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -316.0
-offset_top = -297.0
-grow_horizontal = 0
-grow_vertical = 0
-title_position = 1
-script = ExtResource("4_codri")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CastingWaver/DocFlower"]
-layout_mode = 2
 
 [connection signal="pressed" from="CastingWaver/Button" to="CastingWaver" method="ClearHexStack"]
 [connection signal="pressed" from="CastingWaver/Button" to="CastingWaver" method="ClearHexCanvas"]
