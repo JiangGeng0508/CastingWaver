@@ -33,6 +33,6 @@ public partial class SpellStackManager : Node
         return d;
     }
 
-    public static void Clear() => SpellStack.Clear();
+    public static void ClearStack() => SpellStack.Clear();
     public static string PrintStack() => SpellStack.Aggregate("Stack:", (current, func) => current + ("\n" + func.Invoke()));
 }

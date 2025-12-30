@@ -175,6 +175,11 @@ public partial class CastingWaver : Control
         _hexLine.Points = [];
         UpdateCursorLine();
     }
+    private void ClearHexStack()
+    {
+        SpellStackManager.ClearStack();
+        ShowStack();
+    }
 
     private void SetCanvas(Vector2 pos, bool occupy = true)
     {
