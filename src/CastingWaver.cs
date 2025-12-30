@@ -10,6 +10,8 @@ public partial class CastingWaver : Control
     private Line2D _hexLine;
     private Line2D _cursorLine;
     private Control _dirAssist;
+    private Control _numAssist;
+    private Label _numCount;
     private RichTextLabel _stackVisual;
 
     private static string RawMapping(Vector2I coord) => coord switch
@@ -83,6 +85,8 @@ public partial class CastingWaver : Control
         _hexCanvas = GetNode<TileMapLayer>("HexCanvas");
         _cursorLine = GetNode<Line2D>("CursorLine");
         _dirAssist = GetNode<Control>("CursorLine/DirAssist");
+        _numAssist = GetNode<Control>("CursorLine/NumAssist");
+        _numCount = GetNode<Label>("CursorLine/NumAssist/NumCount");
         _stackVisual = GetNode<RichTextLabel>("StackVisual");
         CreateHexLine();
     }
@@ -106,6 +110,7 @@ public partial class CastingWaver : Control
                     Casting();
                     UpdateCursorLine();
                     UpdateDirAssist();
+                    UpdateNumAssist();
                 }
             }
             else if(mouseButton.ButtonIndex == MouseButton.Right && mouseButton.IsPressed())
@@ -119,6 +124,7 @@ public partial class CastingWaver : Control
             TryAddHexNode(mouseEvent.Position);
             UpdateCursorLine();
             UpdateDirAssist();
+            UpdateNumAssist();
         }
     }
 
@@ -129,6 +135,16 @@ public partial class CastingWaver : Control
             ClearHexNode();
             return;
         }
+        var result = ParseHexLine();
+        HexPattern.Cast(result);
+        foreach (var point in _hexLine.Points) SetCanvas(point);
+        GetNode<LineEdit>("LineEdit").Text = result;
+        CreateHexLine();
+        ShowStack();
+    }
+
+    private string ParseHexLine()
+    {
         var pattern = _hexLine.Points;
         var resultRaw = "";
         for (var index = 0; index < pattern.Length - 1; index++)
@@ -140,12 +156,7 @@ public partial class CastingWaver : Control
             if(RawMapping(coord2 - coord1) == "S") GD.Print(coord2 - coord1);
         }
         var result = GetLocalAngle(resultRaw);
-        GD.Print($"{resultRaw}-{result}");
-        HexPattern.Cast(result);
-        foreach (var point in _hexLine.Points) SetCanvas(point);
-        GetNode<LineEdit>("LineEdit").Text = result;
-        CreateHexLine();
-        ShowStack();
+        return result;
     }
 
     private void UpdateCursorLine()
@@ -213,16 +224,18 @@ public partial class CastingWaver : Control
         _hexLine.AddPoint(hexPos);
         UpdateCursorLine();
         UpdateDirAssist();
+        UpdateNumAssist();
     }
     
     private bool ValidPos(Vector2 pos)
     {
-        return RawMapping(_hexCanvas.LocalToMap(pos) - _hexCanvas.LocalToMap(_hexLine.Points.Last())) != "S" && !IsCellOccupied(pos);
+        var rawDir = _hexCanvas.LocalToMap(pos) - _hexCanvas.LocalToMap(_hexLine.Points.Last());
+        return RawMapping(rawDir) != "S" && !IsCellOccupied(pos);
     }
 
     private void UpdateDirAssist()
     {
-        if(_hexLine.Points.Length < 2)
+        if(!_dirAssistEnabled || _hexLine.Points.Length < 2)
         {
             _dirAssist.Hide();
             return;
@@ -263,8 +276,49 @@ public partial class CastingWaver : Control
         _dirAssist.Position = _hexLine.Points.Last();
     }
 
-    public void ShowStack()
+    private static string NumPrefix => HexPattern.NumPrefix;
+    private static string NegPrefix => HexPattern.NegPrefix;
+    private static float ParseNum(string str) => HexPattern.ParseNum(str);
+    private void UpdateNumAssist()
+    {
+        if(!_numAssistEnabled || _hexLine.Points.Length < NumPrefix.Length)
+        {
+            _numAssist.Hide();
+            return;
+        }
+
+        var pattern = ParseHexLine();
+        if (pattern.StartsWith(NumPrefix))
+        {
+            var str = pattern[NumPrefix.Length..];
+            _numCount.Text = $"{ParseNum(str)}";
+            _numAssist.Show();
+            _numAssist.Position = _hexLine.Points.Last();
+        }
+        else if (pattern.StartsWith(NegPrefix))
+        {
+            var str = pattern[NegPrefix.Length..];
+            _numCount.Text = $"-{ParseNum(str)}";
+            _numAssist.Show();
+            _numAssist.Position = _hexLine.Points.Last();
+        }
+        else
+        {
+            _numAssist.Hide();
+        }   
+    }
+
+    private void ShowStack()
     {
         _stackVisual.Text = SpellStackManager.PrintStack();
     }
+    
+    
+    private bool _dirAssistEnabled;
+    private bool _numAssistEnabled;
+    
+    private void ToggleDirAssist(bool toggle)
+        => _dirAssistEnabled = toggle;
+    private void ToggleNumAssist(bool toggle)
+        => _numAssistEnabled = toggle;
 }

@@ -108,11 +108,39 @@ pivot_offset = Vector2(5, 12)
 text = "B"
 horizontal_alignment = 1
 
-[node name="Button" type="Button" parent="CastingWaver"]
+[node name="NumAssist" type="Control" parent="CastingWaver/CursorLine"]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = 160.0
+offset_top = 128.0
+offset_right = 200.0
+offset_bottom = 168.0
+
+[node name="NumCount" type="Label" parent="CastingWaver/CursorLine/NumAssist"]
 layout_mode = 0
-offset_right = 168.0
-offset_bottom = 46.0
+offset_left = 99.0
+offset_top = -11.0
+offset_right = 157.0
+offset_bottom = 12.0
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CastingWaver"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Clear" type="Button" parent="CastingWaver/HBoxContainer"]
+layout_mode = 2
 text = "Clear"
+
+[node name="Dir" type="CheckBox" parent="CastingWaver/HBoxContainer"]
+layout_mode = 2
+text = "DirAss"
+
+[node name="Num" type="CheckBox" parent="CastingWaver/HBoxContainer"]
+layout_mode = 2
+text = "NumAss"
 
 [node name="LineEdit" type="LineEdit" parent="CastingWaver"]
 layout_mode = 0
@@ -124,6 +152,7 @@ placeholder_text = "Pattern"
 alignment = 1
 editable = false
 select_all_on_focus = true
+metadata/_edit_lock_ = true
 
 [node name="StackVisual" type="RichTextLabel" parent="CastingWaver"]
 layout_mode = 0
@@ -133,9 +162,12 @@ offset_right = 337.0
 offset_bottom = 647.0
 bbcode_enabled = true
 text = "Stack:"
+metadata/_edit_lock_ = true
 
 [node name="DocFlower" parent="CastingWaver" instance=ExtResource("4_codri")]
 layout_mode = 1
 
-[connection signal="pressed" from="CastingWaver/Button" to="CastingWaver" method="ClearHexStack"]
-[connection signal="pressed" from="CastingWaver/Button" to="CastingWaver" method="ClearHexCanvas"]
+[connection signal="pressed" from="CastingWaver/HBoxContainer/Clear" to="CastingWaver" method="ClearHexStack"]
+[connection signal="pressed" from="CastingWaver/HBoxContainer/Clear" to="CastingWaver" method="ClearHexCanvas"]
+[connection signal="toggled" from="CastingWaver/HBoxContainer/Dir" to="CastingWaver" method="ToggleDirAssist"]
+[connection signal="toggled" from="CastingWaver/HBoxContainer/Num" to="CastingWaver" method="ToggleNumAssist"]

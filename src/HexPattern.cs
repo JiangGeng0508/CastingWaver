@@ -1034,8 +1034,8 @@ public partial class HexPattern : Node
         });
     }
 
-    private const string NumPrefix = "AQAA";
-    private const string NegPrefix = "DEDD";
+    public const string NumPrefix = "AQAA";
+    public const string NegPrefix = "DEDD";
 
     public static void Cast(string pattern,bool fromlist = false)
     {
@@ -1089,33 +1089,33 @@ public partial class HexPattern : Node
             }
             GD.Print($"Invalid pattern: {pattern}");
         }
-        return;
-        
-        static float ParseNum(string str)
-        {
-            var num = 0f;
-            foreach (var t in str)
-                switch (t)
-                 {
-                    case 'W':
-                        num += 1;
-                        break;
-                    case 'Q':
-                        num += 5;
-                        break;
-                    case 'A':
-                        num *= 2;
-                        break;
-                    case 'E':
-                        num += 10;
-                        break;
-                    case 'D':
-                        num /= 2;
-                        break;
-                }
-            return num;
-            }
     }
+
+    public static float ParseNum(string str)
+    {
+        var num = 0f;
+        foreach (var t in str)
+            switch (t)
+            {
+                case 'W':
+                    num += 1;
+                    break;
+                case 'Q':
+                    num += 5;
+                    break;
+                case 'A':
+                    num *= 2;
+                    break;
+                case 'E':
+                    num += 10;
+                    break;
+                case 'D':
+                    num /= 2;
+                    break;
+            }
+        return num;
+    }
+
     private static bool GetRecordMode() => _isRecordMode;
     private static void SetRecordMode(bool mode)
     {
@@ -1141,10 +1141,7 @@ public partial class HexPattern : Node
     }
     public static void AddPattern(string pattern, Action spell)
     {
-        if (!Patterns.TryAdd(pattern, spell))
-        {
-            GD.PrintErr($"Pattern {pattern} already exists");
-            return;
-        }
+        if (Patterns.TryAdd(pattern, spell)) return;
+        GD.PrintErr($"Pattern {pattern} already exists");
     }
 }
